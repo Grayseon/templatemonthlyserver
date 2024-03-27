@@ -1,3 +1,4 @@
-variable("name", {
-    fileContents: true
+variable("jbname", {
+    fileContents: true,
+    exactString: true
 })
