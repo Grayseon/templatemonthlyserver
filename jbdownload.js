@@ -1,0 +1,3 @@
+variable("name", {
+    fileContents: true
+})
