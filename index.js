@@ -31,6 +31,12 @@ app.on('ready', ()=>{
         cons[con.id] = con
         con.on('close', ()=>{
             delete cons[con.id]
+            if(users[con.id]){
+                delete users[con.id]
+                win.webContents.send('dead', {
+                    id: con.id
+                })
+            }
         })
         con.on('message', (msg)=>{
             msg = JSON.parse(msg)
@@ -55,13 +61,14 @@ app.on('ready', ()=>{
                 'type': 'logIn',
                 'content': msg.name
             }, null, 5))
-            users[msg.id] = msg.name
+        }
+    })
+    ipcMain.on('kill', (e, { id })=>{
+        if(users[id]){
+            delete users[id]
+        }
+        if(cons[id]){
+            delete cons[id]
         }
     })
 })
-
-/*
-FIXME: websockets were getting disconnected
-FIXME: easily removable ids
-FIXME: remove ids on websocket disconnect
-*/

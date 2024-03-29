@@ -12,6 +12,9 @@
         #users {
             border: 1px solid black;
         }
+        .user {
+            margin: 0;
+        }
         * {
             margin-bottom: 5px;
             margin-right: 5px;
@@ -21,8 +24,13 @@
         const { ipcRenderer } = require('electron')
         var users = {}
 
-        ipcRenderer.on('imposterID', (err, msg)=>{
-            spyid = msg
+        ipcRenderer.on('addName', addName)
+
+        ipcRenderer.on('dead', (e, { id })=>{
+            if(users[id]){
+                document.getElementById(id).remove()
+                delete users[id]
+            }
         })
 
         function addUser(){
@@ -34,17 +42,23 @@
 
         function addName(e, { id, name }){
             users[id] = name
+            var divEl = document.createElement('div')
+            divEl.id = id
+            divEl.className = 'user'
             var idEl = document.createElement('span')
             var nameEl = document.createElement('span')
             idEl.innerHTML = `#${id}`
             nameEl.innerHTML = name
-            var br = document.createElement('br')
-            document.getElementById('users').appendChild(idEl)
-            document.getElementById('users').appendChild(nameEl)
-            document.getElementById('users').appendChild(br)
+            divEl.appendChild(idEl)
+            divEl.appendChild(nameEl)
+            divEl.addEventListener('click', ()=>{
+                ipcRenderer.send('kill', {
+                    id: id
+                })
+                divEl.remove()
+            })
+            document.getElementById('users').appendChild(divEl)
         }
-
-        ipcRenderer.on('addName', addName)
     </script>
 </body>
 </html>
