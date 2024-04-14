@@ -2,11 +2,17 @@ const { app, BrowserWindow, ipcMain } = require('electron')
 const ws = require('ws')
 const wss = new ws.Server({port: 8081})
 var cons = {}
-var users = {}
+var playerList = {}
 
 function rand(string){
     let random = Math.floor(Math.random()*10)
     return string ? random.toString() : random
+}
+
+function broadcast(msg){
+    Object.values(cons).forEach(con=>{
+        con.send(JSON.stringify(msg))
+    })
 }
 
 app.on('ready', ()=>{
@@ -31,8 +37,8 @@ app.on('ready', ()=>{
         cons[con.id] = con
         con.on('close', ()=>{
             delete cons[con.id]
-            if(users[con.id]){
-                delete users[con.id]
+            if(playerList[con.id]){
+                delete playerList[con.id]
                 win.webContents.send('dead', {
                     id: con.id
                 })
@@ -60,15 +66,27 @@ app.on('ready', ()=>{
             cons[msg.id].send(JSON.stringify({
                 'type': 'logIn',
                 'content': msg.name
-            }, null, 5))
+            }))
+            playerList[msg.id] = {
+                name: msg.name
+                /* other player data might go here */
+            }
+            broadcast({
+                type: "playerList",
+                content: playerList
+            })
         }
     })
     ipcMain.on('kill', (e, { id })=>{
-        if(users[id]){
-            delete users[id]
+        if(playerList[id]){
+            delete playerList[id]
         }
         if(cons[id]){
             delete cons[id]
         }
+        broadcast({
+            type: "playerList",
+            content: playerList
+        })
     })
 })
