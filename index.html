@@ -3,21 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>jbname</title>
 </head>
 <body>
-    <input placeholder="id" id="newUserID"><input placeholder="real name" id="newUserName"><button onclick="addUser()">log in</button>
-    <div id="users"></div>
+    <table id="users">
+        <tr>
+            <th>Name</th>
+            <th>ID</th>
+        </tr>
+    </table>
     <style>
         #users {
-            border: 1px solid black;
+            width: 100%;
         }
         .user {
             margin: 0;
         }
-        * {
+        td {
+            text-align: center;
+        }
+        tr:has(td):nth-child(odd) {
+            background: #f1f1f1
+        }
+        td, th {
+            border: 1px solid #dddddd; 
+            margin: 0 !important;
+        }
+        table {
             margin-bottom: 5px;
             margin-right: 5px;
+        }
+        body {
+            font-family: Arial, Helvetica, sans-serif
         }
     </style>
     <script>
@@ -33,31 +50,24 @@
             }
         })
 
-        function addUser(){
-            var id = document.getElementById('newUserID').value
-            var name = document.getElementById('newUserName').value
-
-            ipcRenderer.send('login', {"name": name, "id": id})
-        }
-
         function addName(e, { id, name }){
             users[id] = name
-            var divEl = document.createElement('div')
-            divEl.id = id
-            divEl.className = 'user'
-            var idEl = document.createElement('span')
-            var nameEl = document.createElement('span')
-            idEl.innerHTML = `#${id}`
+            var tr = document.createElement('tr')
+            tr.id = id
+            tr.className = 'user'
+            var idEl = document.createElement('td')
+            var nameEl = document.createElement('td')
+            idEl.innerHTML = id
             nameEl.innerHTML = name
-            divEl.appendChild(idEl)
-            divEl.appendChild(nameEl)
-            divEl.addEventListener('click', ()=>{
+            tr.appendChild(nameEl)
+            tr.appendChild(idEl)
+            tr.addEventListener('click', ()=>{
                 ipcRenderer.send('kill', {
                     id: id
                 })
-                divEl.remove()
+                tr.remove()
             })
-            document.getElementById('users').appendChild(divEl)
+            document.getElementById('users').appendChild(tr)
         }
     </script>
 </body>

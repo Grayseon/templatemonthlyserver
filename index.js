@@ -32,7 +32,7 @@ app.on('ready', ()=>{
         con.id = rand(true)+rand(true)+rand(true)+rand(true)+rand(true)
         con.send(JSON.stringify({
             type: 'id',
-            content: `#${con.id}`
+            content: `${con.id}`
         }))
         cons[con.id] = con
         con.on('close', ()=>{
@@ -46,8 +46,19 @@ app.on('ready', ()=>{
         })
         con.on('message', (msg)=>{
             msg = JSON.parse(msg)
+            console.log(msg)
             switch(msg.type){
-                // client messages go here
+                case "userJoin":
+                    win.webContents.send('addName', msg.content)
+                    playerList[msg.content.id] = {
+                        name: msg.content.name
+                        /* other player data might go here */
+                    }
+                    broadcast({
+                        type: "playerList",
+                        content: playerList
+                    })
+                break
             }
         })
     })
@@ -57,30 +68,11 @@ app.on('ready', ()=>{
             // host messages go here
         }
     })
-    ipcMain.on('login', (e,msg)=>{
-        if(Object.keys(cons).includes(msg.id)){
-            e.sender.send('addName', {
-                id: msg.id,
-                name: msg.name
-            })
-            cons[msg.id].send(JSON.stringify({
-                'type': 'logIn',
-                'content': msg.name
-            }))
-            playerList[msg.id] = {
-                name: msg.name
-                /* other player data might go here */
-            }
-            broadcast({
-                type: "playerList",
-                content: playerList
-            })
-        }
-    })
     ipcMain.on('kill', (e, { id })=>{
         if(playerList[id]){
             delete playerList[id]
         }
+        cons[id].terminate()
         if(cons[id]){
             delete cons[id]
         }
